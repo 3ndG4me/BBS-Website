@@ -3,13 +3,25 @@
  * Copyright 2013-2016 Start Bootstrap
  * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap/blob/gh-pages/LICENSE)
  */
+
+ @font-face {
+ 	font-family: 'vcr font';
+ 	src:
+ 		local('VCR Font'),
+ 		local('VCR-Font'),
+ 		url('../vendor/custom-font/vcr.ttf')
+ 		format('truetype');
+ }
+
+
+
 html,
 body {
   height: 100%;
   width: 100%;
 }
 body {
-  font-family: 'Overpass Mono', monospace;
+  font-family: 'vcr font', 'Overpass Mono', monospace;
 }
 hr {
   border-color: #000;
@@ -36,7 +48,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'Overpass Mono', monospace;
+  font-family:  'vcr font', 'Overpass Mono', monospace;
   color: #000;
 }
 p {
@@ -66,14 +78,14 @@ aside {
 .navbar-default {
   background-color: white;
   border-color: #000;
-  font-family: 'Overpass Mono', monospace;
+  font-family:  'vcr font', 'Overpass Mono', monospace;
   -webkit-transition: all 0.35s;
   -moz-transition: all 0.35s;
   transition: all 0.35s;
 }
 .navbar-default .navbar-header .navbar-brand {
   color: #000;
-  font-family: 'Overpass Mono', monospace;
+  font-family:  'vcr font', 'Overpass Mono', monospace;
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -278,7 +290,7 @@ header .header-content .header-content-inner p {
 }
 .portfolio-box .portfolio-box-caption .portfolio-box-caption-content .project-category,
 .portfolio-box .portfolio-box-caption .portfolio-box-caption-content .project-name {
-  font-family: 'Overpass Mono', monospace;
+  font-family:  'vcr font', 'Overpass Mono', monospace;
   padding: 0 15px;
 }
 .portfolio-box .portfolio-box-caption .portfolio-box-caption-content .project-category {
@@ -411,7 +423,7 @@ fieldset[disabled] .btn-primary.active {
   background-color: white;
 }
 .btn {
-  font-family: 'Overpass Mono', monospace;
+  font-family:  'vcr font', 'Overpass Mono', monospace;
   border: none;
   border-radius: 300px;
   font-weight: 700;
