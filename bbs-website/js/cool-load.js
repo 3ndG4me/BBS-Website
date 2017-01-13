@@ -1,5 +1,5 @@
 $( document ).ready(function() {
-   $("#page-top").attr({style: "content:url(img/onload-logo.gif)" });
+   $("#page-top").attr({style: "content:url(img/onload-logo.gif); width:100%; margin: 0 auto;" });
 
    $('#page-top').delay(2200).fadeOut(1000, function(){
       $("#page-top").attr({style: "" });
