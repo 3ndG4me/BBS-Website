@@ -1,0 +1,14 @@
+Flask
+Flask-SQLAlchemy
+Flask-Session
+Flask-Caching
+Flask-Migrate
+SQLAlchemy
+sqlalchemy-utils
+passlib
+bcrypt
+six
+itsdangerous
+requests
+PyMySQL
+gunicorn
