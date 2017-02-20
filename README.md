@@ -3,7 +3,7 @@ Black Box Society Site
 
 How to Install:
 
-1. Shove this in the apache directory.
+1. Shove this in the apache directory. Put the website and wiki in the html folder, and the-box in www
 
 2. Make sure you configure Apache correctly for CTFd and Doku Wiki (apache2.conf not included for security reasons)
     -make sure ownership for www is configured correctly VERY important
