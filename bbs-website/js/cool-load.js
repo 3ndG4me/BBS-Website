@@ -1,9 +1,9 @@
 $( document ).ready(function() {
-   $("#page-top").attr({style: "content:url(img/onload-logo.gif); width:100%; margin: 0 auto;" });
+   $("#main-view").attr({style: "content:url(img/onload-logo.gif); width:100%; margin: 0 auto;" });
 
-   $('#page-top').delay(2200).fadeOut(1000, function(){
-      $("#page-top").attr({style: "" });
-      $("#page-top").hide();
+   $('#main-view').delay(2200).fadeOut(1000, function(){
+      $("#main-view").attr({style: "" });
+      $("#main-view").hide();
    });
-   $('#page-top').fadeIn(2000);
+   $('#main-view').fadeIn(2000);
 });
