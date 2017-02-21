@@ -1,6 +1,7 @@
 $( document ).ready(function() {
-   
-   if($.browser.mozilla){
+   jQuery.browser = {};
+   jQuery.browser.mozilla = /mozilla/.test(navigator.userAgent.toLowerCase()) && !/webkit    /.test(navigator.userAgent.toLowerCase());
+   if(jQuery.browser.mozilla){
       console.log('no animation');  
       
    }else{
