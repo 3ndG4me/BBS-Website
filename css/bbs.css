@@ -132,10 +132,6 @@ aside {
   content:url("../img/logo1.png");
 }
 
-.bbs-logo:after{
-  content:url("../img/logo1.png");
-}
-
 .bbs-logo:hover{
   content:url("../img/logo2.png");
 }
