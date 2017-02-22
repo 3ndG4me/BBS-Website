@@ -13,6 +13,7 @@ $( document ).ready(function() {
                   $("#page-top").hide();
                });
                $('#page-top').fadeIn(2000);
+                        $("#page-top").show();
                isFirstVisit = { 'first_visit':false };
             // Put the object into storage
             localStorage.setItem('isFirstVisit', JSON.stringify(isFirstVisit));
