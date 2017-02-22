@@ -1,5 +1,5 @@
 $( document ).ready(function() {
-
+/*
 
             if(!$.isEmptyObject(localStorage.getItem('isFirstVisit'))){
 
@@ -18,7 +18,7 @@ $( document ).ready(function() {
             // Put the object into storage
             localStorage.setItem('isFirstVisit', JSON.stringify(isFirstVisit));
             }
-         }
+         }*/
 });
 
 
