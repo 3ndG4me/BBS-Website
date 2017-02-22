@@ -3,7 +3,7 @@
  	src:
  		local('VCR Font'),
  		local('VCR-Font'),
- 		url('../../../../../../vendor/custom-font/vcr.ttf')
+ 		url('../../../../vendor/custom-font/vcr.ttf')
  		format('truetype');
  }
 
@@ -65,7 +65,8 @@ a {
 
 .align-text-to-button {
     padding-top: 16px;
-}
+    background-color: #fff;
+}}
 
 .padded-container {
     margin-top: 50px;
@@ -377,6 +378,10 @@ table{
 
 .done-row {
     margin: 0px;
+}
+
+.navbar-inverse .navbar-toggle .icon-bar {
+    background-color: #000;
 }
 
 /* END OF INPUT CSS */
