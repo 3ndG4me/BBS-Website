@@ -130,12 +130,14 @@ aside {
 
 .bbs-logo{
   content:url("../img/logo1.png");
- background-image: url("./img/logo1.png");
+}
+
+.bbs-logo:before{
+  content:url("../img/logo1.png");
 }
 
 .bbs-logo:hover{
   content:url("../img/logo2.png");
- background-image: url("./img/logo2.png");
 }
 
 
