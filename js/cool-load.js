@@ -19,7 +19,7 @@ $( document ).ready(function() {
             localStorage.setItem('isFirstVisit', JSON.stringify(isFirstVisit));
                      
             }
-              $("#main-logo").attr("src","img/logo1.png");
+              $("#main-logo").attr("src","/img/logo1.png");
          }
 });
 
