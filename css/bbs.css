@@ -132,7 +132,7 @@ aside {
   content:url("../img/logo1.png");
 }
 
-.bbs-logo:before{
+.bbs-logo:after{
   content:url("../img/logo1.png");
 }
 
