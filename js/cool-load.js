@@ -1,7 +1,7 @@
 $( document ).ready(function() {
 
    jQuery.browser = {};
-   jQuery.browser.mozilla = /mozilla/.test(navigator.userAgent.toLowerCase()) && !/webkit    /.test(navigator.userAgent.toLowerCase());
+   jQuery.browser.mozilla = /mozilla/.test(navigator.userAgent.toLowerCase());
    if(jQuery.browser.mozilla){
       console.log('no animation');  
       document.getElementById("#main-logo").src= "img/logo1.png";
