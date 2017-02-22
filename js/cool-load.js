@@ -17,7 +17,7 @@ $( document ).ready(function() {
             // Put the object into storage
             localStorage.setItem('isFirstVisit', JSON.stringify(isFirstVisit));
             }
-
+         }
    document.getElementById("#main-logo").src= "img/logo1.png";
 });
 
