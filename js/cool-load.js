@@ -18,7 +18,7 @@ $( document ).ready(function() {
             localStorage.setItem('isFirstVisit', JSON.stringify(isFirstVisit));
             }
          }
-   document.getElementById("#main-logo").src= "img/logo1.png";
+   document.getElementById("#main-logo").src= "/img/logo1.png";
 });
 
 
