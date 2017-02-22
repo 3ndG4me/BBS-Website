@@ -17,8 +17,9 @@ $( document ).ready(function() {
                isFirstVisit = { 'first_visit':false };
             // Put the object into storage
             localStorage.setItem('isFirstVisit', JSON.stringify(isFirstVisit));
-               $("#main-logo").attr("src","img/logo1.png");        
+                     
             }
+              $("#main-logo").attr("src","img/logo1.png");
          }
 });
 
