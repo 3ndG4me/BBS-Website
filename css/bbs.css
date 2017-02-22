@@ -131,11 +131,15 @@ aside {
 .bbs-logo{
   content:url("../img/logo1.png");
 }
-
+/*FireFox Fix*/
 .bbs-logo:after{
-  content:url("../img/logo1.png");
-  width: 10px;
-  height: 10px;
+    display: inline-block;
+    width: 1000px;
+    height: 500px;
+    margin-right: 5px;
+    content: "";
+    background: url("../img/logo1.png") no-repeat 0 0;
+    background-size: 100%;
 }
 
 .bbs-logo:hover{
