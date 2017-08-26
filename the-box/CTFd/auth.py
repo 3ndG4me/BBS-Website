@@ -2,14 +2,13 @@ import logging
 import os
 import re
 import time
-import urllib
 
 from flask import current_app as app, render_template, request, redirect, url_for, session, Blueprint
 from itsdangerous import TimedSerializer, BadTimeSignature, Signer, BadSignature
 from passlib.hash import bcrypt_sha256
 
-from CTFd.utils import sha512, is_safe_url, authed, can_send_mail, sendmail, can_register, get_config, verify_email
 from CTFd.models import db, Teams
+from CTFd import utils
 
 auth = Blueprint('auth', __name__)
 
@@ -17,45 +16,73 @@ auth = Blueprint('auth', __name__)
 @auth.route('/confirm', methods=['POST', 'GET'])
 @auth.route('/confirm/<data>', methods=['GET'])
 def confirm_user(data=None):
-    if not get_config('verify_emails'):
+    if not utils.get_config('verify_emails'):
+        # If the CTF doesn't care about confirming email addresses then redierct to challenges
         return redirect(url_for('challenges.challenges_view'))
-    if data and request.method == "GET": # User is confirming email account
+
+    logger = logging.getLogger('regs')
+    # User is confirming email account
+    if data and request.method == "GET":
         try:
-            s = Signer(app.config['SECRET_KEY'])
-            email = s.unsign(urllib.unquote_plus(data.decode('base64')))
+            s = TimedSerializer(app.config['SECRET_KEY'])
+            email = s.loads(utils.base64decode(data, urldecode=True), max_age=1800)
+        except BadTimeSignature:
+            return render_template('confirm.html', errors=['Your confirmation link has expired'])
         except BadSignature:
             return render_template('confirm.html', errors=['Your confirmation link seems wrong'])
-        except:
-            return render_template('confirm.html', errors=['Your link appears broken, please try again.'])
         team = Teams.query.filter_by(email=email).first_or_404()
         team.verified = True
         db.session.commit()
+        logger.warn("[{date}] {ip} - {username} confirmed their account".format(
+            date=time.strftime("%m/%d/%Y %X"),
+            ip=utils.get_ip(),
+            username=team.name.encode('utf-8'),
+            email=team.email.encode('utf-8')
+        ))
         db.session.close()
-        logger = logging.getLogger('regs')
-        logger.warn("[{0}] {1} confirmed {2}".format(time.strftime("%m/%d/%Y %X"), team.name.encode('utf-8'), team.email.encode('utf-8')))
-        if authed():
+        if utils.authed():
             return redirect(url_for('challenges.challenges_view'))
         return redirect(url_for('auth.login'))
-    if not data and request.method == "GET": # User has been directed to the confirm page because his account is not verified
-        if not authed():
-            return redirect(url_for('auth.login'))
-        team = Teams.query.filter_by(id=session['id']).first_or_404()
-        if team.verified:
-            return redirect(url_for('views.profile'))
-        else:
-            verify_email(team.email)
-        return render_template('confirm.html', team=team)
+
+    # User is trying to start or restart the confirmation flow
+    if not utils.authed():
+        return redirect(url_for('auth.login'))
+
+    team = Teams.query.filter_by(id=session['id']).first_or_404()
+
+    if data is None:
+        if request.method == "POST":
+            # User wants to resend their confirmation email
+            if team.verified:
+                return redirect(url_for('views.profile'))
+            else:
+                utils.verify_email(team.email)
+                logger.warn("[{date}] {ip} - {username} initiated a confirmation email resend".format(
+                    date=time.strftime("%m/%d/%Y %X"),
+                    ip=utils.get_ip(),
+                    username=team.name.encode('utf-8'),
+                    email=team.email.encode('utf-8')
+                ))
+            return render_template('confirm.html', team=team, infos=['Your confirmation email has been resent!'])
+        elif request.method == "GET":
+            # User has been directed to the confirm page
+            team = Teams.query.filter_by(id=session['id']).first_or_404()
+            if team.verified:
+                # If user is already verified, redirect to their profile
+                return redirect(url_for('views.profile'))
+            return render_template('confirm.html', team=team)
 
 
 @auth.route('/reset_password', methods=['POST', 'GET'])
 @auth.route('/reset_password/<data>', methods=['POST', 'GET'])
 def reset_password(data=None):
+    logger = logging.getLogger('logins')
     if data is not None and request.method == "GET":
         return render_template('reset_password.html', mode='set')
     if data is not None and request.method == "POST":
         try:
             s = TimedSerializer(app.config['SECRET_KEY'])
-            name = s.loads(urllib.unquote_plus(data.decode('base64')), max_age=1800)
+            name = s.loads(utils.base64decode(data, urldecode=True), max_age=1800)
         except BadTimeSignature:
             return render_template('reset_password.html', errors=['Your link has expired'])
         except:
@@ -63,6 +90,11 @@ def reset_password(data=None):
         team = Teams.query.filter_by(name=name).first_or_404()
         team.password = bcrypt_sha256.encrypt(request.form['password'].strip())
         db.session.commit()
+        logger.warn("[{date}] {ip} -  successful password reset for {username}".format(
+            date=time.strftime("%m/%d/%Y %X"),
+            ip=utils.get_ip(),
+            username=team.name.encode('utf-8')
+        ))
         db.session.close()
         return redirect(url_for('auth.login'))
 
@@ -78,9 +110,9 @@ Did you initiate a password reset?
 
 {0}/{1}
 
-""".format(url_for('auth.reset_password', _external=True), urllib.quote_plus(token.encode('base64')))
+""".format(url_for('auth.reset_password', _external=True), utils.base64encode(token, urlencode=True))
 
-        sendmail(email, text)
+        utils.sendmail(email, text)
 
         return render_template('reset_password.html', errors=['If that account exists you will receive an email, please check your inbox'])
     return render_template('reset_password.html')
@@ -88,7 +120,8 @@ Did you initiate a password reset?
 
 @auth.route('/register', methods=['POST', 'GET'])
 def register():
-    if not can_register():
+    logger = logging.getLogger('regs')
+    if not utils.can_register():
         return redirect(url_for('auth.login'))
     if request.method == 'POST':
         errors = []
@@ -128,23 +161,30 @@ def register():
                 session['username'] = team.name
                 session['id'] = team.id
                 session['admin'] = team.admin
-                session['nonce'] = sha512(os.urandom(10))
+                session['nonce'] = utils.sha512(os.urandom(10))
 
-                if can_send_mail() and get_config('verify_emails'): # Confirming users is enabled and we can send email.
-                    db.session.close()
+                if utils.can_send_mail() and utils.get_config('verify_emails'):  # Confirming users is enabled and we can send email.
                     logger = logging.getLogger('regs')
-                    logger.warn("[{0}] {1} registered (UNCONFIRMED) with {2}".format(time.strftime("%m/%d/%Y %X"),
-                                                                                     request.form['name'].encode('utf-8'),
-                                                                                     request.form['email'].encode('utf-8')))
+                    logger.warn("[{date}] {ip} - {username} registered (UNCONFIRMED) with {email}".format(
+                        date=time.strftime("%m/%d/%Y %X"),
+                        ip=utils.get_ip(),
+                        username=request.form['name'].encode('utf-8'),
+                        email=request.form['email'].encode('utf-8')
+                    ))
+                    utils.verify_email(team.email)
+                    db.session.close()
                     return redirect(url_for('auth.confirm_user'))
-                else: # Don't care about confirming users
-                    if can_send_mail(): # We want to notify the user that they have registered.
-                        sendmail(request.form['email'], "You've successfully registered for {}".format(get_config('ctf_name')))
+                else:  # Don't care about confirming users
+                    if utils.can_send_mail():  # We want to notify the user that they have registered.
+                        utils.sendmail(request.form['email'], "You've successfully registered for {}".format(utils.get_config('ctf_name')))
 
+        logger.warn("[{date}] {ip} - {username} registered with {email}".format(
+            date=time.strftime("%m/%d/%Y %X"),
+            ip=utils.get_ip(),
+            username=request.form['name'].encode('utf-8'),
+            email=request.form['email'].encode('utf-8')
+        ))
         db.session.close()
-
-        logger = logging.getLogger('regs')
-        logger.warn("[{0}] {1} registered with {2}".format(time.strftime("%m/%d/%Y %X"), request.form['name'].encode('utf-8'), request.form['email'].encode('utf-8')))
         return redirect(url_for('challenges.challenges_view'))
     else:
         return render_template('register.html')
@@ -152,6 +192,7 @@ def register():
 
 @auth.route('/login', methods=['POST', 'GET'])
 def login():
+    logger = logging.getLogger('logins')
     if request.method == 'POST':
         errors = []
         name = request.form['name']
@@ -159,29 +200,44 @@ def login():
         if team:
             if team and bcrypt_sha256.verify(request.form['password'], team.password):
                 try:
-                    session.regenerate() # NO SESSION FIXATION FOR YOU
+                    session.regenerate()  # NO SESSION FIXATION FOR YOU
                 except:
-                    pass # TODO: Some session objects don't implement regenerate :(
+                    pass  # TODO: Some session objects don't implement regenerate :(
                 session['username'] = team.name
                 session['id'] = team.id
                 session['admin'] = team.admin
-                session['nonce'] = sha512(os.urandom(10))
+                session['nonce'] = utils.sha512(os.urandom(10))
                 db.session.close()
 
-                logger = logging.getLogger('logins')
-                logger.warn("[{0}] {1} logged in".format(time.strftime("%m/%d/%Y %X"), session['username'].encode('utf-8')))
+                logger.warn("[{date}] {ip} - {username} logged in".format(
+                    date=time.strftime("%m/%d/%Y %X"),
+                    ip=utils.get_ip(),
+                    username=session['username'].encode('utf-8')
+                ))
 
-                if request.args.get('next') and is_safe_url(request.args.get('next')):
+                if request.args.get('next') and utils.is_safe_url(request.args.get('next')):
                     return redirect(request.args.get('next'))
                 return redirect(url_for('challenges.challenges_view'))
-            else: # This user exists but the password is wrong
+
+            else:  # This user exists but the password is wrong
+                logger.warn("[{date}] {ip} - submitted invalid password for {username}".format(
+                    date=time.strftime("%m/%d/%Y %X"),
+                    ip=utils.get_ip(),
+                    username=team.name.encode('utf-8')
+                ))
                 errors.append("Your username or password is incorrect")
                 db.session.close()
                 return render_template('login.html', errors=errors)
+
         else:  # This user just doesn't exist
+            logger.warn("[{date}] {ip} - submitted invalid account information".format(
+                date=time.strftime("%m/%d/%Y %X"),
+                ip=utils.get_ip()
+            ))
             errors.append("Your username or password is incorrect")
             db.session.close()
             return render_template('login.html', errors=errors)
+
     else:
         db.session.close()
         return render_template('login.html')
@@ -189,6 +245,6 @@ def login():
 
 @auth.route('/logout')
 def logout():
-    if authed():
+    if utils.authed():
         session.clear()
     return redirect(url_for('views.static_html'))

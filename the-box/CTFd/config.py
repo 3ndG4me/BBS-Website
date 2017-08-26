@@ -1,8 +1,8 @@
 import os
 
-##### GENERATE SECRET KEY #####
+''' GENERATE SECRET KEY '''
 
-with open('.ctfd_secret_key', 'a+') as secret:
+with open('.ctfd_secret_key', 'a+b') as secret:
     secret.seek(0)  # Seek to beginning of file since a+ mode leaves you at the end and w+ deletes the file
     key = secret.read()
     if not key:
@@ -10,7 +10,8 @@ with open('.ctfd_secret_key', 'a+') as secret:
         secret.write(key)
         secret.flush()
 
-##### SERVER SETTINGS #####
+''' SERVER SETTINGS '''
+
 
 class Config(object):
     '''
@@ -23,8 +24,7 @@ class Config(object):
 
     http://flask.pocoo.org/docs/0.11/quickstart/#sessions
     '''
-    SECRET_KEY = key
-
+    SECRET_KEY = os.environ.get('SECRET_KEY') or key
 
     '''
     SQLALCHEMY_DATABASE_URI is the URI that specifies the username, password, hostname, port, and database of the server
@@ -32,8 +32,7 @@ class Config(object):
 
     http://flask-sqlalchemy.pocoo.org/2.1/config/#configuration-keys
     '''
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///ctfd.db'
-
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///{}/ctfd.db'.format(os.path.dirname(os.path.abspath(__file__)))
 
     '''
     SQLALCHEMY_TRACK_MODIFICATIONS is automatically disabled to suppress warnings and save memory. You should only enable
@@ -41,13 +40,11 @@ class Config(object):
     '''
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-
     '''
     SESSION_TYPE is a configuration value used for Flask-Session. It is currently unused in CTFd.
     http://pythonhosted.org/Flask-Session/#configuration
     '''
     SESSION_TYPE = "filesystem"
-
 
     '''
     SESSION_FILE_DIR is a configuration value used for Flask-Session. It is currently unused in CTFd.
@@ -55,45 +52,38 @@ class Config(object):
     '''
     SESSION_FILE_DIR = "/tmp/flask_session"
 
-
     '''
     SESSION_COOKIE_HTTPONLY controls if cookies should be set with the HttpOnly flag.
     '''
     SESSION_COOKIE_HTTPONLY = True
 
-
     '''
     PERMANENT_SESSION_LIFETIME is the lifetime of a session.
     '''
-    PERMANENT_SESSION_LIFETIME = 604800 # 7 days in seconds
-
+    PERMANENT_SESSION_LIFETIME = 604800  # 7 days in seconds
 
     '''
     HOST specifies the hostname where the CTFd instance will exist. It is currently unused.
     '''
     HOST = ".ctfd.io"
 
-
     '''
     MAILFROM_ADDR is the email address that emails are sent from if not overridden in the configuration panel.
     '''
     MAILFROM_ADDR = "noreply@ctfd.io"
 
-
     '''
     UPLOAD_FOLDER is the location where files are uploaded.
-    The default destination is the CTFd/static/uploads folder. If you need Amazon S3 files
+    The default destination is the CTFd/uploads folder. If you need Amazon S3 files
     you can use the CTFd S3 plugin: https://github.com/ColdHeat/CTFd-S3-plugin
     '''
-    UPLOAD_FOLDER = os.path.normpath('static/uploads')
-
+    UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER') or os.path.join(os.path.dirname(__file__), 'uploads')
 
     '''
     TEMPLATES_AUTO_RELOAD specifies whether Flask should check for modifications to templates and
     reload them automatically
     '''
     TEMPLATES_AUTO_RELOAD = True
-
 
     '''
     TRUSTED_PROXIES defines a set of regular expressions used for finding a user's IP address if the CTFd instance
@@ -114,7 +104,6 @@ class Config(object):
         '^192\.168\.'
     ]
 
-
     '''
     CACHE_TYPE specifies how CTFd should cache configuration values. If CACHE_TYPE is set to 'redis', CTFd will make use
     of the REDIS_URL specified in environment variables. You can also choose to hardcode the REDIS_URL here.
@@ -130,7 +119,9 @@ class Config(object):
 
 
 class TestingConfig(Config):
+    SECRET_KEY = 'AAAAAAAAAAAAAAAAAAAA'
     PRESERVE_CONTEXT_ON_EXCEPTION = False
     TESTING = True
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
+    SERVER_NAME = 'localhost'
