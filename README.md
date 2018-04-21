@@ -11,7 +11,7 @@ How to Install:
 
 3. Setup CTFd at blackboxsociety.org/the-box (or whatever route you configured in apache)
 
-4. Drop in the theme from custom-ctfd-styles folder into the correct folder for whatever version of CTFd you use. Sometimes the themes location changes so pay close attention. (In the future we should make a real theme not this ghetto folder overwriting stuff) 
+4. Drop the bbs folder into the themes directory in CTFd.
 
 4. Setup Doku Wiki at blackboxsociety.org/wiki/install.php
     -place Doku Wiki files in the directory called wiki
